@@ -1,0 +1,168 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no, viewport-fit=cover" />
+    <meta name="theme-color" content="#f7f2e8" />
+    <meta name="description" content="회사 휴가를 가볍게 기록하는 나만의 월간 휴가일지" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="인생은휴가지" />
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./icons/icon.svg" type="image/svg+xml" />
+    <title>인생은휴가지</title>
+    <link rel="stylesheet" href="./styles.css?v=1" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <header class="app-header">
+        <div class="title-row">
+          <h1 id="motivational-title">인생은휴가지</h1>
+          <button class="icon-button" id="open-settings" type="button" aria-label="설정 열기">
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 15.25A3.25 3.25 0 1 0 12 8.75a3.25 3.25 0 0 0 0 6.5Z" />
+              <path d="M19.4 13.5a7.7 7.7 0 0 0 .05-3l1.55-1.2-2-3.46-1.92.77a7.8 7.8 0 0 0-2.6-1.5L14.2 3h-4.4l-.28 2.11a7.8 7.8 0 0 0-2.6 1.5L5 5.84 3 9.3l1.55 1.2a7.7 7.7 0 0 0 .05 3L3 14.72 5 18.2l1.94-.78a7.8 7.8 0 0 0 2.58 1.48L9.8 21h4.4l.28-2.1a7.8 7.8 0 0 0 2.58-1.48l1.94.78 2-3.48-1.6-1.22Z" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <nav class="month-picker" id="month-picker" aria-label="월 선택"></nav>
+
+      <section class="calendar-section" aria-labelledby="month-heading">
+        <div class="calendar-toolbar">
+          <button class="icon-button" id="prev-month" type="button" aria-label="이전 달">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7" /></svg>
+          </button>
+          <button class="month-heading-button" id="open-jump" type="button" aria-label="년월 이동">
+            <strong id="month-heading"></strong>
+            <span id="leave-count">휴가 0일</span>
+          </button>
+          <button class="icon-button" id="next-month" type="button" aria-label="다음 달">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>
+          </button>
+        </div>
+
+        <div class="weekday-row" aria-hidden="true">
+          <span class="holiday-text">일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span>
+        </div>
+        <div class="calendar-grid" id="calendar-grid" role="grid" aria-labelledby="month-heading"></div>
+      </section>
+
+      <footer class="app-footer">
+        <span><i class="legend-dot"></i> 날짜를 눌러 휴가를 기록하세요</span>
+        <button id="install-app" class="text-button" type="button" hidden>홈 화면에 설치</button>
+      </footer>
+    </main>
+
+    <dialog class="sheet" id="entry-dialog" aria-labelledby="entry-title">
+      <form method="dialog" id="entry-form">
+        <div class="sheet-handle" aria-hidden="true"></div>
+        <div class="sheet-header">
+          <div>
+            <p class="sheet-kicker" id="entry-date-label"></p>
+            <h2 id="entry-title">휴가 기록</h2>
+          </div>
+          <button class="icon-button" value="cancel" type="submit" aria-label="닫기">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+          </button>
+        </div>
+
+        <fieldset class="body-part-fieldset">
+          <legend>휴가 종류를 선택하세요</legend>
+          <div class="body-part-grid" id="body-part-grid"></div>
+        </fieldset>
+
+        <label class="note-field" for="entry-note">
+          <span>짧은 메모 <small>선택 · 최대 24자</small></span>
+          <input id="entry-note" name="note" maxlength="24" autocomplete="off" placeholder="예: 병원 방문" />
+          <span class="char-count"><b id="note-count">0</b>/24</span>
+        </label>
+
+        <div class="sheet-actions">
+          <button class="button button-ghost danger" id="delete-entry" value="delete" type="submit">기록 지우기</button>
+          <button class="button button-primary" id="save-entry" value="save" type="submit">저장하기</button>
+        </div>
+      </form>
+    </dialog>
+
+    <dialog class="sheet settings-sheet" id="settings-dialog" aria-labelledby="settings-title">
+      <form method="dialog" id="settings-form">
+        <div class="sheet-handle" aria-hidden="true"></div>
+        <div class="sheet-header">
+          <div>
+            <h2 id="settings-title">설정</h2>
+          </div>
+          <button class="icon-button" value="cancel" type="submit" aria-label="닫기">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+          </button>
+        </div>
+
+        <section class="theme-section">
+          <div class="section-heading">
+            <h3>화면 톤</h3>
+            <span>내 눈에 편한 분위기로</span>
+          </div>
+          <div class="theme-control" role="radiogroup" aria-label="화면 톤 선택">
+            <label>
+              <input type="radio" name="theme" value="paper" />
+              <span><i class="theme-swatch swatch-paper" aria-hidden="true"></i>지금 톤</span>
+            </label>
+            <label>
+              <input type="radio" name="theme" value="white" />
+              <span><i class="theme-swatch swatch-white" aria-hidden="true"></i>하얀 톤</span>
+            </label>
+            <label>
+              <input type="radio" name="theme" value="black" />
+              <span><i class="theme-swatch swatch-black" aria-hidden="true"></i>검정 톤</span>
+            </label>
+            <label>
+              <input type="radio" name="theme" value="gray" />
+              <span><i class="theme-swatch swatch-gray" aria-hidden="true"></i>그레이 톤</span>
+            </label>
+          </div>
+        </section>
+
+        <section class="settings-section" id="manual-title-section">
+          <label class="note-field" for="custom-title">
+            <span>나만의 제목</span>
+            <input id="custom-title" maxlength="18" autocomplete="off" placeholder="제목을 직접 입력하세요" />
+          </label>
+        </section>
+
+        <button class="button button-primary full-button" id="save-settings" value="save" type="submit">설정 저장</button>
+      </form>
+    </dialog>
+
+    <dialog class="sheet" id="jump-dialog" aria-labelledby="jump-title">
+      <form method="dialog" id="jump-form">
+        <div class="sheet-handle" aria-hidden="true"></div>
+        <div class="sheet-header">
+          <div>
+            <h2 id="jump-title">년월 이동</h2>
+          </div>
+          <button class="icon-button" value="cancel" type="submit" aria-label="닫기">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m6 6 12 12M18 6 6 18" /></svg>
+          </button>
+        </div>
+
+        <div class="year-nav">
+          <button class="icon-button" id="jump-prev-year" type="button" aria-label="이전 해">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m15 5-7 7 7 7" /></svg>
+          </button>
+          <strong id="jump-year-label"></strong>
+          <button class="icon-button" id="jump-next-year" type="button" aria-label="다음 해">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="m9 5 7 7-7 7" /></svg>
+          </button>
+        </div>
+
+        <div class="jump-month-grid" id="jump-month-grid"></div>
+
+        <button class="button button-ghost full-button" id="jump-today" type="button">오늘로 이동</button>
+      </form>
+    </dialog>
+
+    <div class="toast" id="toast" role="status" aria-live="polite"></div>
+    <script src="./app.js?v=1" defer></script>
+  </body>
+</html>
