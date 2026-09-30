@@ -314,7 +314,7 @@ function renderCalendar() {
         ${entry ? '<i class="entry-mark" aria-hidden="true"></i>' : ""}
       </span>
       <span class="holiday-name">${escapeHtml(holidayName)}</span>
-      ${entry ? `<span class="entry-parts">${escapeHtml(entry.parts.join(" · "))}</span>` : ""}
+      ${entry ? `<span class="entry-parts">${formatLeaveTypeLabel(entry.parts[0])}</span>` : ""}
       ${entry?.note ? `<span class="entry-note-preview">${escapeHtml(entry.note)}</span>` : ""}
     `;
     button.addEventListener("click", () => openEntryDialog(key));
@@ -334,7 +334,7 @@ function openEntryDialog(key) {
   const date = dateFromKey(key);
   const holidayName = holidayData(date.getFullYear()).get(key);
   const entry = state.entries[key];
-  selectedParts = new Set(entry?.parts || []);
+  selectedParts = new Set(entry?.parts?.[0] ? [entry.parts[0]] : []);
   refs.entryDateLabel.textContent = `${date.getFullYear()}년 ${date.getMonth() + 1}월 ${date.getDate()}일 ${["일", "월", "화", "수", "목", "금", "토"][date.getDay()]}요일`;
   refs.entryTitle.textContent = holidayName || "휴가 기록";
   refs.entryNote.value = entry?.note || "";
@@ -348,12 +348,12 @@ function renderLeaveTypes() {
   refs.bodyPartGrid.innerHTML = "";
   LEAVE_TYPES.forEach((part) => {
     const label = document.createElement("label");
-    label.className = "body-part-option";
-    label.innerHTML = `<input type="checkbox" value="${part}" ${selectedParts.has(part) ? "checked" : ""} /><span>${part}</span>`;
+    const isFullRow = part === "연차" || part === "기타";
+    label.className = isFullRow ? "body-part-option full-row" : "body-part-option";
+    label.innerHTML = `<input type="radio" name="leave-type" value="${part}" ${selectedParts.has(part) ? "checked" : ""} /><span>${part}</span>`;
     const input = label.querySelector("input");
     input.addEventListener("change", () => {
-      if (input.checked) selectedParts.add(part);
-      else selectedParts.delete(part);
+      selectedParts = new Set([part]);
     });
     refs.bodyPartGrid.append(label);
   });
@@ -402,6 +402,14 @@ function escapeHtml(value) {
     .replaceAll(">", "&gt;")
     .replaceAll('"', "&quot;")
     .replaceAll("'", "&#039;");
+}
+
+function formatLeaveTypeLabel(type) {
+  if (!type) return "";
+  if (type.startsWith("오전") || type.startsWith("오후")) {
+    return `${escapeHtml(type.slice(0, 2))}<br>${escapeHtml(type.slice(2))}`;
+  }
+  return escapeHtml(type);
 }
 
 function showToast(message) {
