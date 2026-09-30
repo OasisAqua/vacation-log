@@ -51,6 +51,7 @@
 
       <footer class="app-footer">
         <span><i class="legend-dot"></i> 날짜를 눌러 휴가를 기록하세요</span>
+        <span id="leave-balance"></span>
         <button id="install-app" class="text-button" type="button" hidden>홈 화면에 설치</button>
       </footer>
     </main>
@@ -127,6 +128,13 @@
           <label class="note-field" for="custom-title">
             <span>나만의 제목</span>
             <input id="custom-title" maxlength="18" autocomplete="off" placeholder="제목을 직접 입력하세요" />
+          </label>
+        </section>
+
+        <section class="settings-section">
+          <label class="note-field" for="total-leave-days">
+            <span>올해 총 휴가 일수</span>
+            <input id="total-leave-days" type="number" min="0" step="0.5" inputmode="decimal" autocomplete="off" placeholder="예: 17" />
           </label>
         </section>
 

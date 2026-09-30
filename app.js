@@ -4,6 +4,8 @@ const STORAGE_KEY = "vacation-log-v1";
 const DEFAULT_TITLE = "인생은휴가지";
 
 const LEAVE_TYPES = ["연차", "오전반차", "오후반차", "오전반반차", "오후반반차", "기타"];
+const LEAVE_VALUES = { "연차": 1, "오전반차": 0.5, "오후반차": 0.5, "오전반반차": 0.25, "오후반반차": 0.25, "기타": 0 };
+const DEFAULT_TOTAL_LEAVE_DAYS = 17;
 
 const ONE_OFF_HOLIDAYS = {
   "2026-06-03": "전국동시지방선거"
@@ -24,6 +26,8 @@ const refs = {
   monthPicker: document.querySelector("#month-picker"),
   monthHeading: document.querySelector("#month-heading"),
   leaveCount: document.querySelector("#leave-count"),
+  leaveBalance: document.querySelector("#leave-balance"),
+  totalLeaveDays: document.querySelector("#total-leave-days"),
   calendar: document.querySelector("#calendar-grid"),
   entryDialog: document.querySelector("#entry-dialog"),
   entryForm: document.querySelector("#entry-form"),
@@ -47,7 +51,7 @@ const refs = {
 };
 
 function loadState() {
-  const fallback = { entries: {}, settings: { customTitle: DEFAULT_TITLE, theme: "paper" } };
+  const fallback = { entries: {}, settings: { customTitle: DEFAULT_TITLE, theme: "paper", totalLeaveDays: DEFAULT_TOTAL_LEAVE_DAYS } };
   try {
     const stored = JSON.parse(localStorage.getItem(STORAGE_KEY));
     if (!stored || typeof stored !== "object") return fallback;
@@ -55,12 +59,18 @@ function loadState() {
       entries: stored.entries && typeof stored.entries === "object" ? stored.entries : {},
       settings: {
         customTitle: sanitizeTitle(stored.settings?.customTitle) || DEFAULT_TITLE,
-        theme: normalizeTheme(stored.settings?.theme)
+        theme: normalizeTheme(stored.settings?.theme),
+        totalLeaveDays: normalizeTotalLeaveDays(stored.settings?.totalLeaveDays)
       }
     };
   } catch {
     return fallback;
   }
+}
+
+function normalizeTotalLeaveDays(value) {
+  const parsed = Number(value);
+  return Number.isFinite(parsed) && parsed >= 0 ? parsed : DEFAULT_TOTAL_LEAVE_DAYS;
 }
 
 function saveState() {
@@ -105,6 +115,36 @@ function sameDay(a, b) {
 
 function renderTitle() {
   refs.title.textContent = state.settings.customTitle || DEFAULT_TITLE;
+}
+
+function leaveYearRange(date) {
+  const startYear = date.getMonth() < 2 ? date.getFullYear() - 1 : date.getFullYear();
+  const start = new Date(startYear, 2, 1);
+  const end = new Date(startYear + 1, 2, 0);
+  return { start, end };
+}
+
+function usedLeaveDays(range) {
+  // 오늘 이전/이후를 가리지 않고, range(휴가연도) 안에 있는 기록은 전부 합산한다.
+  let total = 0;
+  Object.entries(state.entries).forEach(([key, entry]) => {
+    const date = dateFromKey(key);
+    if (date < range.start || date > range.end) return;
+    entry.parts.forEach((part) => { total += LEAVE_VALUES[part] || 0; });
+  });
+  return Math.round(total * 100) / 100;
+}
+
+function formatDays(value) {
+  return String(Math.round(value * 100) / 100);
+}
+
+function renderLeaveBalance() {
+  const range = leaveYearRange(today);
+  const used = usedLeaveDays(range);
+  const total = state.settings.totalLeaveDays;
+  const remaining = Math.round((total - used) * 100) / 100;
+  refs.leaveBalance.textContent = `남은 휴가: ${formatDays(total)}일 - ${formatDays(used)}일 = ${formatDays(remaining)}일`;
 }
 
 function renderMonthPicker() {
@@ -322,6 +362,7 @@ function renderLeaveTypes() {
 function openSettings() {
   refs.settingsForm.elements.theme.value = state.settings.theme;
   refs.customTitle.value = state.settings.customTitle;
+  refs.totalLeaveDays.value = state.settings.totalLeaveDays;
   refs.settingsDialog.showModal();
 }
 
@@ -384,6 +425,7 @@ refs.entryForm.addEventListener("submit", (event) => {
     saveState();
     refs.entryDialog.close();
     renderCalendar();
+    renderLeaveBalance();
     showToast("기록을 지웠어요");
     return;
   }
@@ -397,6 +439,7 @@ refs.entryForm.addEventListener("submit", (event) => {
   saveState();
   refs.entryDialog.close();
   renderCalendar();
+  renderLeaveBalance();
   showToast("오늘의 휴가를 기록했어요");
 });
 
@@ -405,10 +448,12 @@ refs.settingsForm.addEventListener("submit", (event) => {
   event.preventDefault();
   state.settings.customTitle = sanitizeTitle(refs.customTitle.value) || DEFAULT_TITLE;
   state.settings.theme = normalizeTheme(refs.settingsForm.elements.theme.value);
+  state.settings.totalLeaveDays = normalizeTotalLeaveDays(refs.totalLeaveDays.value);
   saveState();
   refs.settingsDialog.close();
   renderTitle();
   applyTheme(state.settings.theme);
+  renderLeaveBalance();
   showToast("설정을 저장했어요");
 });
 
@@ -460,3 +505,4 @@ if ("serviceWorker" in navigator) {
 
 applyTheme(state.settings.theme);
 render();
+renderLeaveBalance();
