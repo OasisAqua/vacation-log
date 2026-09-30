@@ -10,6 +10,7 @@
   --red-soft: #f8dfda;
   --accent: #ef6b57;
   --accent-dark: #bc4438;
+  --entry-mark: var(--accent);
   --white: #fffdf8;
   --shadow: 0 18px 50px rgba(34, 30, 22, 0.16);
   --paper-rgb: 247, 242, 232;
@@ -71,6 +72,7 @@
   --red-soft: #f0dbdb;
   --accent: #e8624c;
   --accent-dark: #b8322d;
+  --entry-mark: #22262b;
   --white: #ffffff;
   --shadow: 0 18px 50px rgba(30, 34, 44, 0.18);
   --paper-rgb: 214, 218, 221;
@@ -386,7 +388,7 @@ h1 {
   flex: 0 0 auto;
   margin: 4px 1px 0 0;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--entry-mark);
 }
 
 .holiday-name {
@@ -443,7 +445,7 @@ h1 {
   height: 6px;
   margin-right: 5px;
   border-radius: 50%;
-  background: var(--accent);
+  background: var(--entry-mark);
   vertical-align: 1px;
 }
 
