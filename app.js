@@ -147,6 +147,45 @@ function renderLeaveBalance() {
   refs.leaveBalance.textContent = `남은 휴가: ${formatDays(total)}일 - ${formatDays(used)}일 = ${formatDays(remaining)}일`;
 }
 
+function entryLeaveValue(entry) {
+  return entry.parts.reduce((sum, part) => sum + (LEAVE_VALUES[part] || 0), 0);
+}
+
+// 이번 달에 휴가로 쓴 날짜들을 "값(날짜)" 단위로 나열한다. 같은 값이 연속된 날짜는
+// 하나로 묶어서(예: 29~30일을 각 1씩 썼으면 "2(29~30일)") 보여준다.
+function renderLeaveCount(year, month) {
+  const prefix = `${year}-${String(month + 1).padStart(2, "0")}-`;
+  const dayValues = Object.keys(state.entries)
+    .filter((key) => key.startsWith(prefix))
+    .map((key) => ({ day: dateFromKey(key).getDate(), value: entryLeaveValue(state.entries[key]) }))
+    .filter((item) => item.value > 0)
+    .sort((a, b) => a.day - b.day);
+
+  if (dayValues.length === 0) {
+    refs.leaveCount.textContent = "휴가 0일";
+    return;
+  }
+
+  const terms = [];
+  let i = 0;
+  while (i < dayValues.length) {
+    const start = dayValues[i];
+    let end = start;
+    let j = i + 1;
+    while (j < dayValues.length && dayValues[j].day === end.day + 1 && dayValues[j].value === start.value) {
+      end = dayValues[j];
+      j += 1;
+    }
+    const dayLabel = end.day === start.day ? `${start.day}일` : `${start.day}~${end.day}일`;
+    const rangeValue = start.value * (end.day - start.day + 1);
+    terms.push(`${formatDays(rangeValue)}(${dayLabel})`);
+    i = j;
+  }
+
+  const total = dayValues.reduce((sum, item) => sum + item.value, 0);
+  refs.leaveCount.textContent = `휴가 ${terms.join(" + ")} = ${formatDays(total)}`;
+}
+
 function renderMonthPicker() {
   refs.monthPicker.innerHTML = "";
   for (let month = 0; month < 12; month += 1) {
@@ -277,8 +316,7 @@ function renderCalendar() {
   refs.monthHeading.textContent = `${year}년 ${month + 1}월`;
   refs.calendar.innerHTML = "";
 
-  const monthlyEntries = Object.keys(state.entries).filter((key) => key.startsWith(`${year}-${String(month + 1).padStart(2, "0")}-`));
-  refs.leaveCount.textContent = `휴가 ${monthlyEntries.length}일`;
+  renderLeaveCount(year, month);
 
   for (let index = 0; index < cellCount; index += 1) {
     const cell = document.createElement("div");
